@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% from "components/macros.html" import icon, ifood_button, whatsapp_button, page_hero %}
+{% block title %}Dúvidas frequentes — KNAZH{% endblock %}
+{% block description %}Respostas para as dúvidas mais comuns sobre pedidos, conta e atendimento da KNAZH.{% endblock %}
+{% block content %}
+{% call page_hero('Dúvidas frequentes', 'Reunimos aqui as perguntas mais comuns sobre a KNAZH. Se a sua dúvida não estiver na lista, nosso time está pronto para ajudar!', kicker='Tem alguma dúvida?', art='img/mascote/mascote-busca.png') %}{% endcall %}
+<div class="container faq">
+  <nav class="card faq__cats" aria-label="Categorias de dúvidas"><h2>Categorias</h2>
+    <ul>{% for g in groups %}<li><a href="#faq-{{ g.slug }}">{{ icon(g.icon) }}<span>{{ g.label }}</span></a></li>{% endfor %}</ul></nav>
+  <section class="card faq__list" aria-label="Perguntas e respostas">
+    <div class="field faq__search"><label class="sr-only" for="faq-busca">Buscar nas dúvidas</label>
+      <div class="search search--wide">{{ icon('search') }}<input id="faq-busca" class="search__input" type="search" placeholder="Busque sua dúvida aqui..." autocomplete="off" data-faq-search></div></div>
+    {% for g in groups %}
+    <div class="faq__group" id="faq-{{ g.slug }}" data-faq-group><h2>{{ g.label }}</h2>
+      {% for q, a, pending in g.entries %}
+      <details class="faq__item" data-faq-item><summary>{{ q }}{{ icon('chevron-down') }}</summary><p>{{ a }}</p>{% if pending %}<p class="badge badge--off">Informação pendente</p>{% endif %}</details>
+      {% endfor %}
+    </div>
+    {% endfor %}
+    <p class="notice notice--info faq__none" hidden data-faq-none>{{ icon('search') }}<span>Nenhuma dúvida encontrada. Tente outras palavras ou fale com a gente.</span></p>
+  </section>
+  <aside class="card faq__help"><img src="{{ url_for('static', filename='img/mascote/mascote-feliz.png') }}" alt="" width="400" height="430" loading="lazy">
+    <h2>Ainda tem dúvidas?</h2><p>Nossa equipe está pronta para te atender!</p>
+    <div class="stack">{{ ifood_button(channels, 'btn btn--ifood btn--block') }}{{ whatsapp_button(channels, cls='btn btn--whatsapp btn--block', label='Chamar no WhatsApp', show_number=True) }}
+      <a class="btn btn--ghost btn--block" href="{{ url_for('main.contact') }}">Enviar mensagem</a></div></aside>
+</div>
+{% endblock %}

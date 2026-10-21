@@ -1,0 +1,10 @@
+{% extends "account/_layout.html" %}
+{% from "components/macros.html" import field %}
+{% block title %}Editar perfil — KNAZH{% endblock %}
+{% block account_content %}
+<section class="card"><h2>Editar perfil</h2>
+  <form method="post" action="{{ url_for('account.profile') }}" novalidate data-once>{{ form.csrf_token }}
+    {{ field(form.name, autocomplete='name') }}{{ field(form.phone, autocomplete='tel') }}
+    <p class="muted">E-mail da conta: {{ customer.email }}</p>
+    <button class="btn btn--primary" type="submit">Salvar alterações</button></form></section>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% from "components/macros.html" import icon, ifood_button, whatsapp_button, product_card, cta_band %}
+{% block title %}KNAZH — Sabor em todas as formas{% endblock %}
+{% block content %}
+<section class="hero" aria-labelledby="hero-title">
+  <div class="container hero__inner">
+    <div class="hero__text">
+      <p class="script hero__kicker">Doces que fazem o seu dia mais doce!</p>
+      <h1 id="hero-title">Sabor em todas as formas.</h1>
+      <p class="hero__lead">Do clássico ao inovador, temos o doce perfeito para cada momento. KNAZH é variedade, qualidade e muito sabor, sempre.</p>
+      <div class="hero__actions">
+        <a class="btn btn--primary btn--lg" href="{{ url_for('catalog.catalog') }}"><span>Ver cardápio</span>{{ icon('arrow-right') }}</a>
+        {{ ifood_button(channels, 'btn btn--ifood btn--lg') }}
+        {{ whatsapp_button(channels, cls='btn btn--whatsapp btn--lg') }}
+      </div>
+    </div>
+    <div class="hero__art">
+      <img src="{{ url_for('static', filename='img/mascote/mascote-feliz-brownie.png') }}" alt="Mascote da KNAZH sorrindo e segurando um brownie (ilustração)" width="400" height="430" fetchpriority="high">
+    </div>
+  </div>
+</section>
+
+<section class="section container" aria-labelledby="cats-title">
+  <div class="categories">
+    <div class="categories__intro"><h2 id="cats-title">Nossas categorias</h2><p>Explore nossos doces e encontre o seu favorito.</p></div>
+    <ul class="category-tiles">
+      {% for c in categories %}
+      <li><a class="category-tile" href="{{ url_for('catalog.category', slug=c.slug) }}">{{ icon(c.icon) }}<span>{{ c.name }}</span></a></li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+
+<section class="section container" aria-labelledby="dest-title">
+  <div class="section__head">
+    <div><h2 id="dest-title">Destaques do cardápio</h2><p>Os queridinhos da KNAZH, feitos com muito carinho.</p></div>
+    <a class="link-arrow" href="{{ url_for('catalog.catalog') }}">Ver todo o cardápio{{ icon('arrow-right') }}</a>
+  </div>
+  {% if featured %}
+  <div class="grid grid--5">{% for p in featured %}{{ product_card(p, lazy=loop.index > 2) }}{% endfor %}</div>
+  {% else %}
+  <p class="muted">O cardápio ainda não tem destaques. <a href="{{ url_for('catalog.catalog') }}">Ver todos os produtos</a>.</p>
+  {% endif %}
+</section>
+{{ cta_band(channels) }}
+{% endblock %}

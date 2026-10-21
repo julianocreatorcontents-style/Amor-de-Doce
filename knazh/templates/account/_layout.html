@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% from "components/macros.html" import icon, page_hero %}
+{% block robots %}<meta name="robots" content="noindex">{% endblock %}
+{% block content %}
+{% call page_hero('Minha conta', 'Acompanhe seus pedidos, salve seus favoritos e mantenha seus dados atualizados.', kicker='Tudo o que você quer, em um só lugar!', art='img/mascote/mascote-sacola.png', art_class='hero-band__art--sm') %}{% endcall %}
+<div class="container account">
+  <nav class="card account__nav" aria-label="Minha conta"><ul>
+    <li><a href="{{ url_for('account.dashboard') }}" {% if section == 'perfil' %}aria-current="page"{% endif %}>{{ icon('user') }}<span>Meu perfil</span></a></li>
+    <li><a href="{{ url_for('account.orders') }}" {% if section == 'pedidos' %}aria-current="page"{% endif %}>{{ icon('clipboard') }}<span>Meus pedidos</span></a></li>
+    <li><a href="{{ url_for('account.favorites') }}" {% if section == 'favoritos' %}aria-current="page"{% endif %}>{{ icon('heart') }}<span>Favoritos</span></a></li>
+    {% if customer and customer.is_admin %}<li><a href="{{ url_for('admin.products') }}">{{ icon('package') }}<span>Painel administrativo</span></a></li>{% endif %}
+    <li><a href="{{ url_for('main.faq') }}">{{ icon('help') }}<span>Ajuda</span></a></li>
+    <li><form method="post" action="{{ url_for('account.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit">{{ icon('logout') }}<span>Sair</span></button></form></li>
+  </ul></nav>
+  <div class="account__main">{% block account_content %}{% endblock %}</div>
+</div>
+{% endblock %}

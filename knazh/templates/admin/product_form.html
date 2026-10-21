@@ -1,0 +1,72 @@
+{% extends "admin/layout.html" %}
+{% from "components/macros.html" import icon %}
+{% set editing = product is not none %}
+{% macro afield(f, hint=None) %}
+{% set err = f.errors|first if f.errors else None %}
+<div class="field{% if err %} field--error{% endif %}">
+  <label for="{{ f.id }}">{{ f.label.text }}{% if f.flags.required %} <span class="req" title="obrigatório">*</span>{% endif %}</label>
+  {{ f(class_='input', **dict({'aria-describedby': f.id ~ '-msg', 'aria-invalid': 'true' if err else 'false'}, **kwargs)) }}
+  {% if err %}<p class="field__msg field__msg--error" id="{{ f.id }}-msg">{{ icon('alert') }}{{ err }}</p>
+  {% elif hint %}<p class="field__msg" id="{{ f.id }}-msg">{{ hint }}</p>{% endif %}
+</div>
+{% endmacro %}
+{% block title %}{{ 'Editar produto' if editing else 'Novo produto' }} — Painel administrativo{% endblock %}
+{% block crumb %}<a href="{{ url_for('admin.products') }}">Produtos</a><span aria-hidden="true"> / </span>{{ 'Editar' if editing else 'Novo' }}{% endblock %}
+{% block content %}
+<div class="admin-pagehead">
+  <h1>{{ 'Editar produto' if editing else 'Novo produto' }}</h1>
+  <p class="muted">{{ 'Atualize os dados e a foto. Se você não escolher uma nova foto, a atual é mantida.' if editing else 'Preencha os dados do doce e envie uma foto. Campos com * são obrigatórios.' }}</p>
+</div>
+
+<form class="admin-form" method="post" enctype="multipart/form-data" novalidate data-once
+      action="{{ url_for('admin.product_edit', product_id=product.id) if editing else url_for('admin.product_new') }}">
+  {{ form.csrf_token }}
+  {% if form.errors %}<p class="admin-alert" role="alert" tabindex="-1" data-form-alert>{{ icon('alert') }}<span>Revise os campos destacados e tente de novo.{% if form.image.data is none and not form.image.errors %} Por segurança, o navegador não guarda a foto escolhida: selecione-a novamente.{% endif %}</span></p>{% endif %}
+
+  <div class="admin-form__grid">
+    <section class="admin-card admin-photo" aria-labelledby="foto-title" data-photo data-max-bytes="{{ max_bytes }}">
+      <h2 id="foto-title">Foto do produto</h2>
+      <div class="admin-photo__frame">
+        {% if editing %}
+        <img src="{{ url_for('static', filename=product.image) }}" alt="Foto atual: {{ product.image_alt or product.name }}" width="640" height="480" data-image-preview data-original-src="{{ url_for('static', filename=product.image) }}">
+        {% else %}
+        <img src="{{ url_for('static', filename='img/mascote/mascote-feliz.png') }}" alt="" width="800" height="860" class="admin-photo__placeholder" data-image-preview data-original-src="" hidden>
+        <p class="admin-photo__empty" data-image-empty>{{ icon('image') }}<span>A pré-visualização da foto aparece aqui</span></p>
+        {% endif %}
+      </div>
+      <p class="admin-photo__status muted" data-photo-status aria-live="polite">{{ 'Foto atual' if editing else 'Nenhuma foto escolhida' }}</p>
+      {% set ierr = form.image.errors|first if form.image.errors else None %}
+      <div class="field{% if ierr %} field--error{% endif %}">
+        <label for="{{ form.image.id }}">{{ 'Trocar foto' if editing else 'Escolher foto' }}{% if not editing %} <span class="req" title="obrigatório">*</span>{% endif %}</label>
+        {{ form.image(class_='input', accept=accept, **{'data-image-input': '', 'aria-describedby': 'image-msg', 'aria-invalid': 'true' if ierr else 'false'}) }}
+        {% if ierr %}<p class="field__msg field__msg--error" id="image-msg">{{ icon('alert') }}{{ ierr }}</p>
+        {% else %}<p class="field__msg" id="image-msg">Formatos aceitos: JPG, PNG ou WebP. Tamanho máximo: {{ (max_bytes / 1048576)|round|int }} MiB.</p>{% endif %}
+        <p class="field__msg field__msg--error" data-photo-error role="alert" hidden></p>
+      </div>
+      {% if editing %}<button class="btn-link" type="button" data-photo-reset hidden>Manter a foto atual</button>{% endif %}
+    </section>
+
+    <section class="admin-card admin-fields" aria-labelledby="dados-title">
+      <h2 id="dados-title">Dados do produto</h2>
+      {{ afield(form.name, autocomplete='off', maxlength=120) }}
+      {{ afield(form.description, hint='Aparece nos cartões do cardápio. Até 400 caracteres.', maxlength=400) }}
+      {{ afield(form.details, hint='Aparece na página do produto (ingredientes, tamanho, observações).', rows=4) }}
+      <div class="admin-fields__row">
+        {{ afield(form.category_id) }}
+        {{ afield(form.price, hint='Em reais, por exemplo 18,50.', inputmode='decimal', autocomplete='off', placeholder='0,00') }}
+      </div>
+      {{ afield(form.image_alt, hint='Descreve a foto para quem usa leitor de tela. Se vazio, usamos o nome do produto.', maxlength=200) }}
+      <fieldset class="admin-checks">
+        <legend>Exibição na loja</legend>
+        <label class="admin-check">{{ form.is_available(class_='admin-check__input') }}<span>{{ form.is_available.label.text }}</span></label>
+        <label class="admin-check">{{ form.is_featured(class_='admin-check__input') }}<span>{{ form.is_featured.label.text }}</span></label>
+      </fieldset>
+    </section>
+  </div>
+
+  <div class="admin-form__actions">
+    <a class="btn btn--ghost" href="{{ url_for('admin.products') }}">Cancelar</a>
+    <button class="btn btn--primary" type="submit">{{ icon('check') }}<span>{{ 'Salvar alterações' if editing else 'Salvar produto' }}</span></button>
+  </div>
+</form>
+{% endblock %}

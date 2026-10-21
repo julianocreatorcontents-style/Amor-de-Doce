@@ -1,0 +1,11 @@
+.env
+instance/
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+*.db
+# Fotos enviadas pelo painel administrativo (mantenha em armazenamento persistente + backup em produção)
+knazh/static/uploads/products/*
+!knazh/static/uploads/products/.gitkeep

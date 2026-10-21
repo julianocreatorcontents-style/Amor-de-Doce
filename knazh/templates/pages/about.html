@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% from "components/macros.html" import icon, page_hero %}
+{% block title %}Sobre a KNAZH{% endblock %}
+{% block description %}Conheça a KNAZH: doces feitos com carinho, qualidade e muito sabor.{% endblock %}
+{% block content %}
+{% call page_hero('Sobre a KNAZH', 'Somos uma doceria apaixonada por transformar ingredientes simples em momentos especiais. Cada doce é feito com carinho, qualidade e muito sabor.', kicker='Mais que doces, é KNAZH!', art='img/mascote/mascote-feliz-brownie.png') %}{% endcall %}
+<div class="container about">
+  <p class="notice notice--info">{{ icon('alert') }}<span>Textos institucionais provisórios — a KNAZH deve revisar e aprovar antes da publicação.</span></p>
+  <div class="about__grid">
+    <section class="card" aria-labelledby="hist-title"><h2 id="hist-title">Nossa história</h2>
+      <p>A KNAZH nasceu do sonho de criar uma doceria diferente, com sabores que conquistam de primeira e que fazem parte de momentos inesquecíveis. Mais do que doces, entregamos experiências, carinho e muito sabor em cada pedido.</p>
+      <p>Cada receita é pensada com cuidado, do primeiro ingrediente até o último detalhe, para que você sinta em cada mordida o nosso amor pelo que fazemos.</p>
+      <p class="script about__quote">Aqui, cada doce tem uma história.</p></section>
+    <section class="card" aria-labelledby="val-title"><h2 id="val-title">Nossos valores</h2>
+      <ul class="values">{% for ic, name, text in values %}<li><span class="values__icon">{{ icon(ic) }}</span><h3>{{ name }}</h3><p>{{ text }}</p></li>{% endfor %}</ul>
+      <div class="about__welcome"><img src="{{ url_for('static', filename='img/mascote/mascote-feliz.png') }}" alt="" width="400" height="430" loading="lazy">
+        <p class="script">Juntos, tornamos cada dia mais doce!</p><p>Seja bem-vindo(a) ao nosso mundo! Aqui na KNAZH, cada doce é feito para fazer parte da sua história.</p></div></section>
+  </div>
+  <p class="center"><a class="btn btn--primary btn--lg" href="{{ url_for('catalog.catalog') }}">Conhecer o cardápio</a></p>
+</div>
+{% endblock %}

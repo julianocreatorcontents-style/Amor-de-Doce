@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% from "components/macros.html" import icon, page_hero %}
+{% block title %}{{ title }} — KNAZH{% endblock %}
+{% block content %}
+{% call page_hero(title, 'Transparência sobre como o site funciona.', art='img/mascote/mascote-feliz.png', art_class='hero-band__art--sm') %}{% endcall %}
+<div class="container legal">
+  <p class="notice notice--warn">{{ icon('alert') }}<span><strong>Texto provisório, pendente de revisão.</strong> Descreve o que o site faz hoje e deve ser revisado pela KNAZH e por profissional jurídico antes da publicação. Não é aconselhamento jurídico.</span></p>
+  <article class="card prose">
+    {% for heading, paragraphs in sections %}<section><h2>{{ loop.index }}. {{ heading }}</h2>{% for p in paragraphs %}<p>{{ p }}</p>{% endfor %}</section>{% endfor %}
+  </article>
+</div>
+{% endblock %}

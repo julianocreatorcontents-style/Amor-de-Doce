@@ -1,0 +1,18 @@
+{% extends "admin/layout.html" %}
+{% from "components/macros.html" import icon %}
+{% block title %}Excluir produto — Painel administrativo{% endblock %}
+{% block crumb %}<a href="{{ url_for('admin.products') }}">Produtos</a><span aria-hidden="true"> / </span>Excluir{% endblock %}
+{% block content %}
+<section class="admin-card admin-confirm" aria-labelledby="del-title">
+  <img class="admin-dialog__mascot" src="{{ url_for('static', filename='img/mascote/mascote-feliz.png') }}" alt="" width="800" height="860">
+  <h1 id="del-title">Excluir produto?</h1>
+  <p>Tem certeza de que deseja excluir “<strong>{{ product.name }}</strong>”? Esta ação é irreversível e o produto sairá da loja. Os pedidos já feitos continuam guardados com o nome e o preço da época.</p>
+  <form method="post" action="{{ url_for('admin.product_delete', product_id=product.id) }}" data-once>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="admin-dialog__actions">
+      <a class="btn btn--ghost" href="{{ url_for('admin.products') }}">Cancelar</a>
+      <button class="btn btn--danger" type="submit">{{ icon('trash') }}<span>Excluir produto</span></button>
+    </div>
+  </form>
+</section>
+{% endblock %}

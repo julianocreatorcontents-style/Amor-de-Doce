@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% from "components/macros.html" import icon, field %}
+{% block title %}Criar conta — KNAZH{% endblock %}
+{% block robots %}<meta name="robots" content="noindex">{% endblock %}
+{% block content %}
+<div class="container auth"><section class="card auth__card" aria-labelledby="reg-title">
+  <h1 id="reg-title">Criar conta</h1><p class="muted">Leva menos de um minuto. Campos com <span class="req">*</span> são obrigatórios.</p>
+  <form method="post" action="{{ url_for('account.register') }}" novalidate data-once>{{ form.csrf_token }}
+    {{ field(form.name, autocomplete='name') }}{{ field(form.email, autocomplete='email') }}{{ field(form.phone, autocomplete='tel') }}
+    {{ field(form.password, hint='Mínimo de 8 caracteres, com letras e números.', autocomplete='new-password') }}{{ field(form.confirm, autocomplete='new-password') }}
+    <button class="btn btn--primary btn--lg btn--block" type="submit">Criar conta</button>
+    <p class="summary__note">Ao criar a conta você concorda com os <a href="{{ url_for('main.terms') }}">Termos de Uso</a> e a <a href="{{ url_for('main.privacy') }}">Política de Privacidade</a> (textos provisórios).</p></form>
+  <p class="center">Já tem conta? <a href="{{ url_for('account.login') }}">Entrar</a></p>
+</section></div>
+{% endblock %}

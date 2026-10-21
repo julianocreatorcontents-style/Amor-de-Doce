@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% from "components/macros.html" import icon, product_card, ifood_button, whatsapp_button, cta_band %}
+{% block title %}{{ product.name }} — KNAZH{% endblock %}
+{% block description %}{{ product.description }}{% endblock %}
+{% block content %}
+<div class="container product">
+  <nav class="breadcrumb" aria-label="Você está em">
+    <ol><li><a href="{{ url_for('main.home') }}">Início</a></li><li><a href="{{ url_for('catalog.catalog') }}">Cardápio</a></li>
+      <li><a href="{{ url_for('catalog.category', slug=product.category.slug) }}">{{ product.category.name }}</a></li><li aria-current="page">{{ product.name }}</li></ol>
+  </nav>
+  <a class="link-arrow link-arrow--back" href="{{ url_for('catalog.catalog') }}">{{ icon('arrow-left') }}Voltar para o cardápio</a>
+
+  <div class="product__grid">
+    <div class="product__media{% if not product.is_available %} is-off{% endif %}">
+      <img src="{{ url_for('static', filename=product.image) }}" alt="{{ product.image_alt or product.name }}" width="640" height="480" fetchpriority="high">
+    </div>
+    <div class="product__info">
+      {% if product.is_featured %}<p class="badge">{{ icon('heart') }}Destaque</p>{% endif %}
+      <h1>{{ product.name }}</h1>
+      <p class="product__desc">{{ product.description }}</p>
+      {% if product.details %}<p class="muted">{{ product.details }}</p>{% endif %}
+      <p class="product__price">{{ product.price_cents|brl }}</p>
+      <p class="product__cat">Categoria: <a href="{{ url_for('catalog.category', slug=product.category.slug) }}">{{ product.category.name }}</a></p>
+
+      {% if product.is_available %}
+      <form class="buy" method="post" action="{{ url_for('cart.add') }}" data-buy-form>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="product_id" value="{{ product.id }}">
+        <input type="hidden" name="next" value="{{ url_for('catalog.product', slug=product.slug) }}">
+        <div class="buy__row">
+          <div class="qty" role="group" aria-label="Quantidade">
+            <button class="qty__btn" type="button" data-qty-dec aria-label="Diminuir quantidade">{{ icon('minus') }}</button>
+            <input class="qty__input" id="quantity" name="quantity" type="number" inputmode="numeric" min="1" max="{{ max_qty }}" value="1" aria-label="Quantidade">
+            <button class="qty__btn" type="button" data-qty-inc aria-label="Aumentar quantidade">{{ icon('plus') }}</button>
+          </div>
+          <button class="btn btn--primary btn--lg buy__add" type="submit">{{ icon('cart') }}<span>Adicionar ao carrinho</span></button>
+        </div>
+      </form>
+      {% else %}
+      <div class="notice notice--warn" role="status">{{ icon('alert') }}<div><strong>Produto indisponível</strong><p>Este produto está temporariamente indisponível. Que tal experimentar outros doces incríveis?</p>
+        <a class="btn btn--primary" href="{{ url_for('catalog.category', slug=product.category.slug) }}">Ver outras opções</a></div></div>
+      {% endif %}
+
+      {% if channels.ifood_configured or channels.whatsapp_configured %}
+      <div class="product__channels">
+        <p class="muted">Prefere pedir por outro canal?</p>
+        {{ ifood_button(channels, 'btn btn--ifood') }}
+        {{ whatsapp_button(channels, url=channels.whatsapp_link('Olá, KNAZH! Tenho interesse em: ' ~ product.name), cls='btn btn--whatsapp') }}
+      </div>
+      {% endif %}
+    </div>
+    <aside class="product__mascot" aria-hidden="true">
+      <p class="script">Doce é sempre uma boa ideia!</p>
+      <img src="{{ url_for('static', filename='img/mascote/mascote-feliz-brownie.png') }}" alt="" width="400" height="430" loading="lazy">
+    </aside>
+  </div>
+
+  {% if related %}
+  <section class="section" aria-labelledby="rel-title">
+    <h2 id="rel-title">Você também pode gostar</h2><p class="muted">Outros doces que combinam com o seu momento.</p>
+    <div class="grid grid--5 grid--scroll">{% for p in related %}{{ product_card(p, favorite_ids) }}{% endfor %}</div>
+  </section>
+  {% endif %}
+</div>
+{{ cta_band(channels) }}
+{% endblock %}

@@ -1,0 +1,113 @@
+{% macro icon(name, cls='') %}<svg class="icon {{ cls }}" aria-hidden="true" focusable="false"><use href="#i-{{ name }}"/></svg>{% endmacro %}
+
+{% macro ifood_button(channels, cls='btn btn--ifood', label='Pedir no iFood') %}
+{% if channels.ifood_configured %}<a class="{{ cls }}" href="{{ channels.ifood_url }}" target="_blank" rel="noopener noreferrer"><span>{{ label }}</span>{{ icon('arrow-right') }}</a>{% endif %}
+{% endmacro %}
+
+{% macro whatsapp_button(channels, url=None, cls='btn btn--whatsapp', label='Pedir pelo WhatsApp', show_number=False) %}
+{% set link = url or channels.whatsapp_link() %}
+{% if link %}<a class="{{ cls }}" href="{{ link }}" target="_blank" rel="noopener noreferrer">{{ icon('whatsapp') }}<span>{{ label }}{% if show_number %}<small>{{ channels.whatsapp_display }}</small>{% endif %}</span></a>{% endif %}
+{% endmacro %}
+
+{% macro field(f, hint=None, autocomplete=None, type=None, rows=None) %}
+{% set err = f.errors|first if f.errors else None %}
+<div class="field{% if err %} field--error{% endif %}">
+  <label for="{{ f.id }}">{{ f.label.text }}{% if f.flags.required %} <span class="req" title="obrigatório">*</span>{% endif %}</label>
+  {% set aria = (f.id ~ '-msg') if (err or hint) else None %}
+  {% if f.type == 'SelectField' %}
+    {{ f(class_='input', **{'aria-describedby': aria, 'aria-invalid': 'true' if err else 'false'}) }}
+  {% elif f.type == 'TextAreaField' %}
+    {{ f(class_='input', rows=rows or 4, **{'aria-describedby': aria, 'aria-invalid': 'true' if err else 'false'}) }}
+  {% else %}
+    {{ f(class_='input', autocomplete=autocomplete, **{'aria-describedby': aria, 'aria-invalid': 'true' if err else 'false'}) }}
+  {% endif %}
+  {% if err %}<p class="field__msg field__msg--error" id="{{ f.id }}-msg">{{ icon('alert') }}{{ err }}</p>
+  {% elif hint %}<p class="field__msg" id="{{ f.id }}-msg">{{ hint }}</p>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro product_card(p, favorite_ids=(), lazy=True, next_url=None) %}
+<article class="product-card{% if not p.is_available %} is-unavailable{% endif %}">
+  <a class="product-card__media" href="{{ url_for('catalog.product', slug=p.slug) }}" tabindex="-1" aria-hidden="true">
+    <img src="{{ url_for('static', filename=p.image) }}" alt="" width="640" height="480" {% if lazy %}loading="lazy"{% endif %} decoding="async">
+  </a>
+  {% if customer %}
+  <form class="product-card__fav" method="post" action="{{ url_for('account.toggle_favorite') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="product_id" value="{{ p.id }}"><input type="hidden" name="next" value="{{ next_url or request.full_path.rstrip('?') }}">
+    <button class="icon-btn{% if p.id in favorite_ids %} is-on{% endif %}" aria-pressed="{{ 'true' if p.id in favorite_ids else 'false' }}" aria-label="{{ 'Remover ' ~ p.name ~ ' dos favoritos' if p.id in favorite_ids else 'Favoritar ' ~ p.name }}">{{ icon('heart') }}</button>
+  </form>
+  {% else %}
+  <a class="product-card__fav icon-btn" href="{{ url_for('account.login', next=request.full_path.rstrip('?')) }}" aria-label="Entre para favoritar {{ p.name }}">{{ icon('heart') }}</a>
+  {% endif %}
+  <div class="product-card__body">
+    <h3 class="product-card__title"><a href="{{ url_for('catalog.product', slug=p.slug) }}">{{ p.name }}</a></h3>
+    <p class="product-card__desc">{{ p.description }}</p>
+    <p class="product-card__price">{{ p.price_cents|brl }}</p>
+    {% if p.is_available %}
+    <form method="post" action="{{ url_for('cart.add') }}" class="js-add-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="product_id" value="{{ p.id }}"><input type="hidden" name="quantity" value="1">
+      <input type="hidden" name="next" value="{{ next_url or request.full_path.rstrip('?') }}">
+      <button class="btn btn--primary btn--block" type="submit">{{ icon('plus') }}<span>Adicionar<span class="sr-only"> {{ p.name }} ao carrinho</span></span></button>
+    </form>
+    {% else %}
+    <p class="badge badge--off">Indisponível no momento</p>
+    {% endif %}
+  </div>
+</article>
+{% endmacro %}
+
+{% macro empty_state(mascot, title, text, primary=None, secondary=None, icon_name=None, tag=None) %}
+<section class="state container" aria-labelledby="state-title">
+  <div class="state__text">
+    {% if icon_name %}<span class="state__icon">{{ icon(icon_name) }}</span>{% endif %}
+    <h1 id="state-title" class="state__title">{{ title }}</h1>
+    <p>{{ text }}</p>
+    <div class="state__actions">
+      {% if primary %}<a class="btn btn--primary" href="{{ primary[1] }}">{{ primary[0] }}</a>{% endif %}
+      {% if secondary %}<a class="link-arrow link-arrow--back" href="{{ secondary[1] }}">{{ icon('arrow-left') }}{{ secondary[0] }}</a>{% endif %}
+    </div>
+  </div>
+  <div class="state__art">{% if tag %}<span class="script state__tag">{{ tag }}</span>{% endif %}<img src="{{ url_for('static', filename='img/mascote/' ~ mascot) }}" alt="" width="400" height="430"></div>
+</section>
+{% endmacro %}
+
+{% macro page_hero(title, text, kicker=None, art=None, art_class='') %}
+<section class="hero-band">
+  <div class="container hero-band__inner">
+    <div class="hero-band__text">
+      {% if kicker %}<p class="script hero-band__kicker">{{ kicker }}</p>{% endif %}
+      <h1>{{ title }}</h1>
+      {% if text %}<p class="hero-band__lead">{{ text }}</p>{% endif %}
+      {{ caller() if caller else '' }}
+    </div>
+    {% if art %}<img class="hero-band__art {{ art_class }}" src="{{ url_for('static', filename=art) }}" alt="" width="400" height="430">{% endif %}
+  </div>
+</section>
+{% endmacro %}
+
+{% macro cta_band(channels) %}
+<section class="cta-band" aria-labelledby="cta-title">
+  <div class="container cta-band__inner">
+    <img class="cta-band__mascot" src="{{ url_for('static', filename='img/mascote/mascote-feliz.png') }}" alt="" width="400" height="430" loading="lazy">
+    <div class="cta-band__text">
+      <h2 id="cta-title">Ainda não encontrou o que queria?</h2>
+      <p>Fale com a gente e confirme a disponibilidade do seu doce favorito!</p>
+    </div>
+    <div class="cta-band__actions">
+      {{ ifood_button(channels, 'btn btn--ifood btn--lg') }}
+      {{ whatsapp_button(channels, cls='btn btn--whatsapp-dark btn--lg') }}
+      {% if not channels.ifood_configured and not channels.whatsapp_configured %}<a class="btn btn--primary btn--lg" href="{{ url_for('main.contact') }}">Enviar mensagem</a>{% endif %}
+    </div>
+  </div>
+</section>
+{% endmacro %}
+
+{% macro pagination(page, filters, endpoint, extra={}) %}
+{% if page.pages > 1 %}
+<nav class="pagination" aria-label="Paginação dos resultados">
+  {% if page.has_prev %}<a class="btn btn--ghost" rel="prev" href="{{ url_for(endpoint, **filters.as_params(pagina=page.prev_num, **extra)) }}">{{ icon('arrow-left') }}Anterior</a>{% endif %}
+  <span class="pagination__info">Página {{ page.page }} de {{ page.pages }}</span>
+  {% if page.has_next %}<a class="btn btn--ghost" rel="next" href="{{ url_for(endpoint, **filters.as_params(pagina=page.next_num, **extra)) }}">Próxima{{ icon('arrow-right') }}</a>{% endif %}
+</nav>
+{% endif %}
+{% endmacro %}

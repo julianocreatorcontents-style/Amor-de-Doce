@@ -1,0 +1,98 @@
+{% from "components/macros.html" import icon, ifood_button, whatsapp_button, cta_band %}
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}KNAZH — Sabor em todas as formas{% endblock %}</title>
+  <meta name="description" content="{% block description %}Conheça o cardápio de doces e sobremesas da KNAZH: brownies, brigadeiros, bolos e muito mais.{% endblock %}">
+  <meta name="theme-color" content="#171717">
+  {% block robots %}{% endblock %}
+  <link rel="icon" href="{{ url_for('static', filename='img/brand/favicon.ico') }}" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/brand/favicon-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/brand/favicon-16x16.png') }}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/brand/apple-touch-icon.png') }}">
+  <link rel="manifest" href="{{ url_for('main.manifest') }}">
+  {% if config.SITE_URL %}<link rel="canonical" href="{{ config.SITE_URL }}{{ request.path }}">{% endif %}
+  <meta property="og:type" content="website"><meta property="og:site_name" content="KNAZH">
+  <meta property="og:title" content="{{ self.title() }}"><meta property="og:description" content="{{ self.description() }}">
+  <meta property="og:image" content="{{ site_url }}{{ url_for('static', filename='img/brand/og-image-knazh.png') }}">
+  <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="preload" href="{{ url_for('static', filename='fonts/fredoka-latin-700-normal.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{{ url_for('static', filename='fonts/dm-sans-latin-400-normal.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <script src="{{ url_for('static', filename='js/boot.js') }}"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+  {% include "components/icons.html" %}
+
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <button class="icon-btn site-header__menu" type="button" aria-expanded="false" aria-controls="menu-principal" data-menu-toggle>
+        <span class="sr-only">Abrir menu</span>{{ icon('menu') }}
+      </button>
+      <a class="brand" href="{{ url_for('main.home') }}" aria-label="KNAZH — página inicial">
+        <img src="{{ url_for('static', filename='img/brand/logo-assinatura-creme.png') }}" alt="KNAZH" width="360" height="237">
+      </a>
+      <nav class="main-nav" id="menu-principal" aria-label="Principal" data-menu>
+        <ul>
+          <li><a href="{{ url_for('main.home') }}" {% if active_nav == 'inicio' %}aria-current="page"{% endif %}>Início</a></li>
+          <li><a href="{{ url_for('catalog.catalog') }}" {% if active_nav == 'cardapio' %}aria-current="page"{% endif %}>Cardápio</a></li>
+          <li><a href="{{ url_for('main.faq') }}" {% if active_nav == 'duvidas' %}aria-current="page"{% endif %}>Dúvidas</a></li>
+          <li><a href="{{ url_for('main.contact') }}" {% if active_nav == 'contato' %}aria-current="page"{% endif %}>Contato</a></li>
+        </ul>
+      </nav>
+      <form class="search" role="search" action="{{ url_for('catalog.search') }}" method="get">
+        <label class="sr-only" for="busca-topo">Buscar no cardápio</label>
+        <input id="busca-topo" class="search__input" type="search" name="q" value="{{ filters.q if filters is defined and filters and mode is defined and mode == 'search' else '' }}" placeholder="O que você está procurando?" maxlength="80" autocomplete="off" enterkeyhint="search">
+        <button class="search__btn" type="submit" aria-label="Buscar">{{ icon('search') }}</button>
+      </form>
+      <div class="site-header__actions">
+        {% if customer and customer.is_admin %}<a class="icon-btn icon-btn--gear" href="{{ url_for('admin.products') }}" aria-label="Painel administrativo" title="Painel administrativo">{{ icon('gear') }}</a>{% endif %}
+        <a class="icon-btn" href="{{ url_for('account.dashboard') }}" aria-label="{{ 'Minha conta' if customer else 'Entrar ou criar conta' }}">{{ icon('user') }}</a>
+        <a class="icon-btn cart-link" href="{{ url_for('cart.show') }}" aria-label="Carrinho: {{ cart_count }} {{ 'item' if cart_count == 1 else 'itens' }}">
+          {{ icon('cart') }}<span class="cart-badge" data-cart-count {% if not cart_count %}hidden{% endif %}>{{ cart_count }}</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <div class="toasts" aria-live="polite" aria-atomic="false" data-toasts>
+    {% with messages = get_flashed_messages(with_categories=true) %}{% for cat, msg in messages %}
+    <p class="toast toast--{{ cat }}" role="{{ 'alert' if cat == 'error' else 'status' }}">{{ icon('check' if cat == 'success' else 'alert') }}<span>{{ msg }}</span></p>
+    {% endfor %}{% endwith %}
+  </div>
+
+  <main id="conteudo" tabindex="-1">{% block content %}{% endblock %}</main>
+
+  <footer class="site-footer">
+    <div class="container site-footer__inner">
+      <div class="site-footer__brand">
+        <img src="{{ url_for('static', filename='img/brand/logo-fundo-carvao.png') }}" alt="KNAZH — Sabor em todas as formas" width="360" height="271" loading="lazy">
+      </div>
+      <nav aria-label="Institucional"><h2>Institucional</h2><ul>
+        <li><a href="{{ url_for('main.about') }}">Sobre a KNAZH</a></li><li><a href="{{ url_for('main.faq') }}">Dúvidas Frequentes</a></li><li><a href="{{ url_for('main.contact') }}">Contato</a></li></ul></nav>
+      <nav aria-label="Políticas"><h2>Políticas</h2><ul>
+        <li><a href="{{ url_for('main.privacy') }}">Privacidade</a></li><li><a href="{{ url_for('main.terms') }}">Termos de uso</a></li></ul></nav>
+      {% if channels.socials %}<div><h2>Siga a KNAZH</h2><ul class="socials">
+        {% for key, label, url in channels.socials %}<li><a href="{{ url }}" target="_blank" rel="noopener noreferrer" aria-label="{{ label }}">{{ icon(key) }}</a></li>{% endfor %}</ul></div>{% endif %}
+      <p class="site-footer__script script">Mais que doces, é KNAZH!</p>
+    </div>
+    <p class="container site-footer__copy">© {{ current_year }} KNAZH. Todos os direitos reservados.</p>
+  </footer>
+
+  <nav class="tabbar" aria-label="Atalhos">
+    <a href="{{ url_for('main.home') }}" {% if active_nav == 'inicio' %}aria-current="page"{% endif %}>{{ icon('home') }}<span>Início</span></a>
+    <a href="{{ url_for('catalog.catalog') }}" {% if active_nav == 'cardapio' %}aria-current="page"{% endif %}>{{ icon('brownie') }}<span>Cardápio</span></a>
+    <a href="{{ url_for('cart.show') }}" {% if request.endpoint in ('cart.show', 'checkout.checkout') %}aria-current="page"{% endif %}>{{ icon('cart') }}<span>Carrinho</span><b class="cart-badge" data-cart-count {% if not cart_count %}hidden{% endif %}>{{ cart_count }}</b></a>
+    <a href="{{ url_for('account.dashboard') }}" {% if request.blueprint == 'account' %}aria-current="page"{% endif %}>{{ icon('user') }}<span>Conta</span></a>
+  </nav>
+  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</body>
+</html>

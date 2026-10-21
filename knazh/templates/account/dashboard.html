@@ -1,0 +1,14 @@
+{% extends "account/_layout.html" %}
+{% block title %}Minha conta — KNAZH{% endblock %}
+{% block account_content %}
+<section class="card" aria-labelledby="ola-title">
+  <div class="card__head"><div><h2 id="ola-title">Olá, {{ customer.name.split(' ')[0] }}!</h2><p class="muted">Seja bem-vindo(a) de volta à KNAZH.</p></div>
+    <a class="btn btn--ghost btn--sm" href="{{ url_for('account.profile') }}">{{ icon('pencil') }}<span>Editar perfil</span></a></div>
+  <ul class="stats">
+    <li><span class="muted">Pedidos realizados</span><strong>{{ n_orders }}</strong><a class="link-arrow link-arrow--sm" href="{{ url_for('account.orders') }}">Ver histórico{{ icon('arrow-right') }}</a></li>
+    <li><span class="muted">Itens favoritos</span><strong>{{ n_favs }}</strong><a class="link-arrow link-arrow--sm" href="{{ url_for('account.favorites') }}">Ver favoritos{{ icon('arrow-right') }}</a></li>
+  </ul>
+</section>
+<section class="card" aria-labelledby="mp-title"><div class="card__head"><h2 id="mp-title">Meus pedidos</h2>{% if orders %}<a class="link-arrow link-arrow--sm" href="{{ url_for('account.orders') }}">Ver todos os pedidos{{ icon('arrow-right') }}</a>{% endif %}</div>
+  {% include "account/_orders_list.html" %}</section>
+{% endblock %}

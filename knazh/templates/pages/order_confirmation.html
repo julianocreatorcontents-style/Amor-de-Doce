@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% from "components/macros.html" import icon, ifood_button, whatsapp_button, page_hero %}
+{% block title %}Pedido {{ order.number }} registrado — KNAZH{% endblock %}
+{% block robots %}<meta name="robots" content="noindex">{% endblock %}
+{% block content %}
+{% call page_hero('Pedido registrado!', 'Guarde o número ' ~ order.number ~ '. Ele ainda não foi confirmado nem cobrado.', kicker='Obrigado pela preferência!', art='img/mascote/mascote-feliz.png', art_class='hero-band__art--sm') %}{% endcall %}
+<div class="container checkout">
+  <ol class="steps" aria-label="Etapas do pedido">
+    <li class="is-done"><span class="steps__dot">{{ icon('check') }}</span>Carrinho</li>
+    <li class="is-done"><span class="steps__dot">{{ icon('check') }}</span>Finalizar pedido</li>
+    <li class="is-current" aria-current="step"><span class="steps__dot">3</span>Pedido registrado</li>
+  </ol>
+  <div class="checkout__grid">
+    <section class="card" aria-labelledby="ped-title">
+      <div class="card__head"><h2 id="ped-title">Pedido {{ order.number }}</h2><span class="badge badge--status">{{ order.status_label }}</span></div>
+      <p class="muted">Registrado em {{ order.created_at.strftime('%d/%m/%Y às %H:%M') }} · {{ order.customer_name }}</p>
+      <ul class="mini-list">
+        {% for i in order.items %}<li><div><strong>{{ i.product_name }}</strong><span class="muted">{{ i.quantity }} × {{ i.unit_price_cents|brl }}</span></div><b>{{ i.line_total_cents|brl }}</b></li>{% endfor %}
+      </ul>
+      <dl class="summary__rows"><div><dt>Entrega</dt><dd class="muted">A combinar com a equipe</dd></div><div class="summary__total"><dt>Total estimado</dt><dd>{{ order.total_cents|brl }}</dd></div></dl>
+      {% if order.notes %}<p class="muted"><strong>Observações:</strong> {{ order.notes }}</p>{% endif %}
+    </section>
+    <section class="card" aria-labelledby="prox-title">
+      <h2 id="prox-title">Como concluir seu pedido</h2>
+      <p>Para confirmar a disponibilidade e combinar entrega e pagamento, fale com a equipe KNAZH:</p>
+      {% if channels.ifood_configured or channels.whatsapp_configured %}
+      <div class="stack">
+        {{ whatsapp_button(channels, url=whatsapp_url, cls='btn btn--whatsapp btn--lg btn--block', label='Chamar no WhatsApp', show_number=True) }}
+        {{ ifood_button(channels, 'btn btn--ifood btn--lg btn--block', 'Acessar loja no iFood') }}
+      </div>
+      <p class="summary__note">Abrir o WhatsApp prepara uma mensagem com seu pedido; ela só é enviada se você tocar em enviar. O iFood abre a loja: o pedido lá é feito separadamente.</p>
+      {% else %}
+      <p class="notice notice--warn">{{ icon('alert') }}<span>Os canais de atendimento (WhatsApp e iFood) ainda não foram configurados neste site. Use o <a href="{{ url_for('main.contact') }}">formulário de contato</a> informando o número do pedido.</span></p>
+      {% endif %}
+      <a class="link-arrow" href="{{ url_for('catalog.catalog') }}">Voltar ao cardápio{{ icon('arrow-right') }}</a>
+    </section>
+  </div>
+</div>
+{% endblock %}

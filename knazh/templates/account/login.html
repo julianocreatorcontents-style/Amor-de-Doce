@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% from "components/macros.html" import icon, field %}
+{% block title %}Entrar — KNAZH{% endblock %}
+{% block robots %}<meta name="robots" content="noindex">{% endblock %}
+{% block content %}
+<div class="container auth"><section class="card auth__card" aria-labelledby="login-title">
+  <h1 id="login-title">Entrar</h1><p class="muted">Acompanhe seus pedidos e salve seus favoritos. Para pedir, a conta é opcional.</p>
+  <form method="post" action="{{ url_for('account.login') }}" novalidate data-once>{{ form.csrf_token }}{{ form.next }}
+    {{ field(form.email, autocomplete='email') }}{{ field(form.password, autocomplete='current-password') }}
+    <button class="btn btn--primary btn--lg btn--block" type="submit">Entrar</button></form>
+  <p class="center">Ainda não tem conta? <a href="{{ url_for('account.register') }}">Criar conta</a></p>
+</section></div>
+{% endblock %}

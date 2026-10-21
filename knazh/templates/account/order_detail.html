@@ -1,0 +1,10 @@
+{% extends "account/_layout.html" %}
+{% block title %}Pedido {{ order.number }} — KNAZH{% endblock %}
+{% block account_content %}
+<section class="card"><div class="card__head"><h2>Pedido {{ order.number }}</h2><span class="badge badge--status">{{ order.status_label }}</span></div>
+  <p class="muted">Registrado em {{ order.created_at.strftime('%d/%m/%Y às %H:%M') }}</p>
+  <ul class="mini-list">{% for i in order.items %}<li><div><strong>{{ i.product_name }}</strong><span class="muted">{{ i.quantity }} × {{ i.unit_price_cents|brl }}</span></div><b>{{ i.line_total_cents|brl }}</b></li>{% endfor %}</ul>
+  <dl class="summary__rows"><div class="summary__total"><dt>Total estimado</dt><dd>{{ order.total_cents|brl }}</dd></div></dl>
+  {% if order.notes %}<p class="muted"><strong>Observações:</strong> {{ order.notes }}</p>{% endif %}
+  <a class="link-arrow link-arrow--back" href="{{ url_for('account.orders') }}">{{ icon('arrow-left') }}Voltar aos pedidos</a></section>
+{% endblock %}

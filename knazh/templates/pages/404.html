@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% from "components/macros.html" import icon %}
+{% block title %}Página não encontrada — KNAZH{% endblock %}
+{% block robots %}<meta name="robots" content="noindex">{% endblock %}
+{% block content %}
+<section class="state state--404 container" aria-labelledby="state-title">
+  <div class="state__art"><span class="script state__tag">Nada de tristeza... tem muito doce por aqui!</span><img src="{{ url_for('static', filename='img/mascote/mascote-404.png') }}" alt="" width="400" height="430"></div>
+  <div class="state__text">
+    <p class="state__ops">Ops!</p>
+    <h1 id="state-title" class="state__title">{{ title }}</h1>
+    <p>{{ text }}</p>
+    <div class="state__actions"><a class="btn btn--primary btn--lg" href="{{ url_for('main.home') }}">{{ icon('home') }}<span>Voltar ao início</span></a>
+      <a class="link-arrow" href="{{ url_for('catalog.catalog') }}">Ver cardápio{{ icon('arrow-right') }}</a></div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% from "components/macros.html" import icon, field, page_hero %}
+{% block title %}Finalizar pedido — KNAZH{% endblock %}
+{% block robots %}<meta name="robots" content="noindex">{% endblock %}
+{% block content %}
+{% call page_hero('Finalize seu pedido', 'Confirme seus dados para registrar o pedido. Depois você conclui pelo canal de atendimento disponível.', kicker='Agora é só escolher como você quer receber seu pedido!', art='img/mascote/mascote-feliz.png', art_class='hero-band__art--sm') %}{% endcall %}
+<div class="container checkout">
+  <ol class="steps" aria-label="Etapas do pedido">
+    <li class="is-done"><span class="steps__dot">{{ icon('check') }}</span>Carrinho</li>
+    <li class="is-current" aria-current="step"><span class="steps__dot">2</span>Finalizar pedido</li>
+    <li><span class="steps__dot">3</span>Pedido registrado</li>
+  </ol>
+  <div class="checkout__grid">
+    <section class="card" aria-labelledby="resumo-title">
+      <div class="card__head"><h2 id="resumo-title">Resumo do pedido</h2><a class="btn-link" href="{{ url_for('cart.show') }}">{{ icon('pencil') }}<span>Editar carrinho</span></a></div>
+      <ul class="mini-list">
+        {% for l in cart.lines %}<li><img src="{{ url_for('static', filename=l.product.image) }}" alt="" width="64" height="48" loading="lazy">
+          <div><strong>{{ l.product.name }}</strong><span class="muted">{{ l.quantity }} {{ 'unidade' if l.quantity == 1 else 'unidades' }} × {{ l.product.price_cents|brl }}</span></div><b>{{ l.total_cents|brl }}</b></li>{% endfor %}
+      </ul>
+      <dl class="summary__rows">
+        <div><dt>Subtotal ({{ cart.count }} {{ 'item' if cart.count == 1 else 'itens' }})</dt><dd>{{ cart.subtotal_cents|brl }}</dd></div>
+        <div><dt>Entrega</dt><dd class="muted">A combinar com a equipe</dd></div>
+        <div class="summary__total"><dt>Total estimado</dt><dd>{{ cart.subtotal_cents|brl }}</dd></div>
+      </dl>
+    </section>
+    <section class="card" aria-labelledby="dados-title">
+      <h2 id="dados-title">Seus dados</h2>
+      {% if not customer %}<p class="muted">Você pode pedir como visitante. <a href="{{ url_for('account.login', next=url_for('checkout.checkout')) }}">Entrar na conta</a> para acompanhar seus pedidos.</p>{% endif %}
+      <form method="post" action="{{ url_for('checkout.checkout') }}" novalidate data-once>
+        {{ form.csrf_token }}{{ form.submission_token }}
+        {{ field(form.name, autocomplete='name') }}
+        {{ field(form.phone, hint='Com DDD. Usamos apenas para falar sobre este pedido.', autocomplete='tel') }}
+        {{ field(form.email, autocomplete='email') }}
+        {{ field(form.notes, rows=3) }}
+        <button class="btn btn--primary btn--lg btn--block" type="submit">{{ icon('check') }}<span>Registrar pedido</span></button>
+        <p class="summary__note">{{ icon('lock') }} Registrar o pedido não gera cobrança nem o confirma: a equipe KNAZH confirma pelo WhatsApp ou iFood.</p>
+      </form>
+    </section>
+  </div>
+</div>
+{% endblock %}

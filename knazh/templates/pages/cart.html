@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% from "components/macros.html" import icon, ifood_button, whatsapp_button, page_hero, product_card, empty_state %}
+{% block title %}Seu carrinho — KNAZH{% endblock %}
+{% block robots %}<meta name="robots" content="noindex">{% endblock %}
+{% block content %}
+{% if cart.is_empty %}
+  {{ empty_state('mascote-sacola.png', 'Seu carrinho está vazio', 'Que tal escolher alguns doces? Explore o cardápio e adicione seus favoritos.', ('Ver cardápio', url_for('catalog.catalog')), ('Voltar ao início', url_for('main.home')), icon_name='cart', tag='Já escolheu seus doces? Que delícia!') }}
+{% else %}
+{% call page_hero('Seu carrinho', 'Revise seus itens e finalize seu pedido do jeito que preferir!', kicker='Já escolheu seus doces? Que delícia!', art='img/mascote/mascote-sacola.png', art_class='hero-band__art--sm') %}{% endcall %}
+<div class="container cart">
+  {% for n in cart.notices %}<p class="notice notice--warn" role="alert">{{ icon('alert') }}<span>{{ n }}</span></p>{% endfor %}
+  <div class="cart__grid">
+    <section class="card cart__items" aria-labelledby="itens-title">
+      <h2 id="itens-title" class="sr-only">Itens do carrinho</h2>
+      <ul class="cart-list">
+        {% for l in cart.lines %}{% set p = l.product %}
+        <li class="cart-line{% if not l.available %} is-unavailable{% endif %}">
+          <a class="cart-line__img" href="{{ url_for('catalog.product', slug=p.slug) }}"><img src="{{ url_for('static', filename=p.image) }}" alt="" width="640" height="480" loading="lazy"></a>
+          <div class="cart-line__info">
+            <h3><a href="{{ url_for('catalog.product', slug=p.slug) }}">{{ p.name }}</a></h3>
+            <p class="muted">{{ p.description }}</p>
+            <p class="cart-line__unit">{{ p.price_cents|brl }} cada</p>
+            {% if not l.available %}<p class="badge badge--off">Indisponível no momento</p>{% endif %}
+            <form method="post" action="{{ url_for('cart.remove') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="product_id" value="{{ p.id }}">
+              <button class="btn-link" type="submit">{{ icon('trash') }}<span>Remover<span class="sr-only"> {{ p.name }}</span></span></button></form>
+          </div>
+          <div class="cart-line__side">
+            <p class="cart-line__total">{{ l.total_cents|brl }}</p>
+            <form class="qty" method="post" action="{{ url_for('cart.update') }}" aria-label="Quantidade de {{ p.name }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="product_id" value="{{ p.id }}">
+              <button class="qty__btn" name="quantity" value="{{ l.quantity - 1 }}" {% if l.quantity <= 1 %}disabled{% endif %} aria-label="Diminuir quantidade de {{ p.name }}">{{ icon('minus') }}</button>
+              <output class="qty__value" aria-label="{{ l.quantity }} unidades">{{ l.quantity }}</output>
+              <button class="qty__btn" name="quantity" value="{{ l.quantity + 1 }}" {% if l.quantity >= max_qty %}disabled{% endif %} aria-label="Aumentar quantidade de {{ p.name }}">{{ icon('plus') }}</button>
+            </form>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+    <aside class="card summary" aria-labelledby="resumo-title">
+      <h2 id="resumo-title">Resumo do pedido</h2>
+      <dl class="summary__rows">
+        <div><dt>Subtotal ({{ cart.count }} {{ 'item' if cart.count == 1 else 'itens' }})</dt><dd>{{ cart.subtotal_cents|brl }}</dd></div>
+        <div><dt>Entrega</dt><dd class="muted">A combinar com a equipe</dd></div>
+        <div class="summary__total"><dt>Total estimado</dt><dd>{{ cart.subtotal_cents|brl }}</dd></div>
+      </dl>
+      {% if cart.can_checkout %}
+      <a class="btn btn--primary btn--lg btn--block" href="{{ url_for('checkout.checkout') }}"><span>Finalizar pedido</span>{{ icon('arrow-right') }}</a>
+      {{ whatsapp_button(channels, url=whatsapp_url, cls='btn btn--whatsapp btn--block', show_number=True) }}
+      {{ ifood_button(channels, 'btn btn--ifood btn--block') }}
+      {% else %}
+      <p class="notice notice--warn">{{ icon('alert') }}<span>Remova os itens indisponíveis para continuar.</span></p>
+      {% endif %}
+      <p class="summary__note">Os valores são conferidos pelo site ao registrar o pedido. O site não faz cobrança.</p>
+    </aside>
+  </div>
+  <a class="link-arrow link-arrow--back" href="{{ url_for('catalog.catalog') }}">{{ icon('arrow-left') }}Continuar comprando</a>
+  {% if suggestions %}
+  <section class="section" aria-labelledby="sug-title"><h2 id="sug-title">Talvez você também goste</h2>
+    <div class="grid grid--5 grid--scroll">{% for p in suggestions %}{{ product_card(p, next_url=url_for('cart.show')) }}{% endfor %}</div></section>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

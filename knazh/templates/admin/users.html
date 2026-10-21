@@ -1,0 +1,97 @@
+{% extends "admin/layout.html" %}
+{% from "components/macros.html" import icon %}
+{% block title %}Gerenciar administradores — Painel administrativo{% endblock %}
+{% block content %}
+<section class="admin-pagehead" aria-labelledby="users-title">
+  <h1 id="users-title">Gerenciar administradores</h1>
+  <p class="muted">Defina quem pode usar o painel da KNAZH. Administradores cadastram e editam produtos; quem tem a permissão de gerenciar administradores também concede e remove esse acesso.</p>
+</section>
+
+<section class="admin-stats" aria-label="Resumo de contas">
+  <article class="admin-stat"><span class="admin-stat__icon">{{ icon('users') }}</span><p><strong>{{ stats.total }}</strong><span>Contas cadastradas</span></p></article>
+  <article class="admin-stat admin-stat--ok"><span class="admin-stat__icon">{{ icon('shield') }}</span><p><strong>{{ stats.admins }}</strong><span>Com acesso administrativo</span></p></article>
+  <article class="admin-stat admin-stat--gold"><span class="admin-stat__icon">{{ icon('lock') }}</span><p><strong>{{ stats.managers }}</strong><span>Gerenciam administradores</span></p></article>
+</section>
+
+<section class="admin-card" aria-labelledby="users-list-title">
+  <h2 id="users-list-title" class="sr-only">Lista de contas</h2>
+  <div class="admin-tools">
+    <ul class="admin-chips" aria-label="Filtrar por tipo de conta">
+      {% for key, label in status_options %}
+      <li><a class="admin-chip" href="{{ url_for('admin.users', **filters.as_params(status=key, pagina=1)) }}" {% if filters.status == key %}aria-current="true"{% endif %}>{{ label }}</a></li>
+      {% endfor %}
+    </ul>
+    <form class="admin-filters" method="get" action="{{ url_for('admin.users') }}" role="search">
+      {% if filters.status != 'todos' %}<input type="hidden" name="status" value="{{ filters.status }}">{% endif %}
+      <div class="admin-filters__q">
+        <label class="sr-only" for="u-q">Buscar contas por nome ou e-mail</label>
+        {{ icon('search') }}<input id="u-q" class="input" type="search" name="q" value="{{ filters.q }}" placeholder="Buscar por nome ou e-mail..." maxlength="80" autocomplete="off">
+      </div>
+      <button class="btn btn--ghost btn--sm" type="submit">{{ icon('filter') }}<span>Filtrar</span></button>
+      {% if filters.active %}<a class="btn-link" href="{{ url_for('admin.users') }}">Limpar filtros</a>{% endif %}
+    </form>
+  </div>
+
+  {% if page.items %}
+  <div class="admin-table-wrap">
+    <table class="admin-table">
+      <thead><tr><th scope="col">Conta</th><th scope="col">Acesso</th><th scope="col">Cadastro</th><th scope="col">Ação</th></tr></thead>
+      <tbody>
+      {% for u in page.items %}
+        <tr>
+          <td data-label="Conta" class="admin-table__name"><strong>{{ u.name }}</strong><span class="muted">{{ u.email }}</span></td>
+          <td data-label="Acesso">
+            {% if u.is_admin and u.can_manage_admins %}<span class="admin-pill admin-pill--manager">Gerencia administradores</span>
+            {% elif u.is_admin %}<span class="admin-pill">Administrador</span>
+            {% else %}<span class="admin-pill admin-pill--plain">Cliente</span>{% endif %}
+          </td>
+          <td data-label="Cadastro">{{ u.created_at.strftime('%d/%m/%Y') }}</td>
+          <td data-label="Ação">
+            {% if u.id == customer.id %}
+              <span class="muted">Você</span>
+            {% elif u.is_admin %}
+              <a class="btn btn--ghost btn--sm" href="{{ url_for('admin.user_revoke', user_id=u.id) }}" data-admin-action="revoke" data-user-name="{{ u.name }}" aria-label="Remover acesso administrativo de {{ u.name }}">{{ icon('close') }}<span>Remover acesso</span></a>
+            {% else %}
+              <a class="btn btn--primary btn--sm" href="{{ url_for('admin.user_grant', user_id=u.id) }}" data-admin-action="grant" data-user-name="{{ u.name }}" aria-label="Tornar {{ u.name }} administrador(a)">{{ icon('shield') }}<span>Tornar administrador</span></a>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="admin-pager">
+    <p class="muted">Mostrando {{ page.first }}–{{ page.last }} de {{ page.total }} {{ 'conta' if page.total == 1 else 'contas' }}</p>
+    {% if page.pages > 1 %}
+    <nav class="admin-pager__nav" aria-label="Paginação das contas">
+      {% if page.has_prev %}<a class="btn btn--ghost btn--sm" rel="prev" href="{{ url_for('admin.users', **filters.as_params(pagina=page.prev_num)) }}">{{ icon('arrow-left') }}<span>Anterior</span></a>{% endif %}
+      <span class="admin-pager__info">Página {{ page.page }} de {{ page.pages }}</span>
+      {% if page.has_next %}<a class="btn btn--ghost btn--sm" rel="next" href="{{ url_for('admin.users', **filters.as_params(pagina=page.next_num)) }}"><span>Próxima</span>{{ icon('arrow-right') }}</a>{% endif %}
+    </nav>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="admin-empty">
+    <img src="{{ url_for('static', filename='img/mascote/mascote-busca.png') }}" alt="" width="800" height="860" loading="lazy">
+    <h3>Nenhuma conta encontrada</h3>
+    <p class="muted">Tente outro nome ou e-mail, ou limpe os filtros.</p>
+    <a class="btn btn--ghost" href="{{ url_for('admin.users') }}">Limpar filtros</a>
+  </div>
+  {% endif %}
+</section>
+
+<dialog class="admin-dialog" data-admin-dialog aria-labelledby="adm-title" aria-describedby="adm-text">
+  <form method="post" action="{{ url_for('admin.users') }}" data-admin-form>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+    <img class="admin-dialog__mascot" src="{{ url_for('static', filename='img/mascote/mascote-feliz.png') }}" alt="" width="800" height="860" loading="lazy">
+    <h2 id="adm-title" data-admin-title></h2>
+    <p id="adm-text" data-admin-text></p>
+    <label class="admin-check admin-check--dialog" data-admin-manage hidden><input class="admin-check__input" type="checkbox" name="can_manage" value="y"><span>Também pode gerenciar administradores</span></label>
+    <div class="admin-dialog__actions">
+      <button class="btn btn--ghost" type="button" data-dialog-cancel>Cancelar</button>
+      <button class="btn btn--primary" type="submit" data-admin-confirm></button>
+    </div>
+  </form>
+</dialog>
+{% endblock %}

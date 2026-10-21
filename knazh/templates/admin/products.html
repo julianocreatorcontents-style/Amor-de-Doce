@@ -1,0 +1,117 @@
+{% extends "admin/layout.html" %}
+{% from "components/macros.html" import icon %}
+{% block title %}Produtos — Painel administrativo{% endblock %}
+{% block content %}
+<section class="admin-welcome" aria-labelledby="admin-title">
+  <img class="admin-welcome__mascot" src="{{ url_for('static', filename='img/mascote/mascote-feliz.png') }}" alt="" width="800" height="860">
+  <div class="admin-welcome__text">
+    <h1 id="admin-title">Olá, Admin!</h1>
+    <p>Aqui você gerencia os produtos da loja: cadastre novos doces, atualize preços e fotos e controle o que aparece no cardápio.</p>
+  </div>
+  <a class="btn btn--primary btn--lg admin-welcome__cta" href="{{ url_for('admin.product_new') }}">{{ icon('plus') }}<span>Novo produto</span></a>
+</section>
+
+<section class="admin-stats" aria-label="Resumo do catálogo">
+  <article class="admin-stat"><span class="admin-stat__icon">{{ icon('package') }}</span><p><strong>{{ stats.total }}</strong><span>Produtos cadastrados</span></p></article>
+  <article class="admin-stat admin-stat--ok"><span class="admin-stat__icon">{{ icon('check') }}</span><p><strong>{{ stats.available }}</strong><span>Disponíveis na loja</span></p></article>
+  <article class="admin-stat admin-stat--gold"><span class="admin-stat__icon">{{ icon('tag') }}</span><p><strong>{{ stats.categories }}</strong><span>Categorias</span></p></article>
+</section>
+
+<section class="admin-card" aria-labelledby="lista-title">
+  <h2 id="lista-title" class="sr-only">Lista de produtos</h2>
+  <div class="admin-tools">
+    <ul class="admin-chips" aria-label="Filtrar por disponibilidade">
+      {% for key, label in status_options %}
+      <li><a class="admin-chip" href="{{ url_for('admin.products', **filters.as_params(status=key, pagina=1)) }}" {% if filters.status == key %}aria-current="true"{% endif %}>{{ label }}</a></li>
+      {% endfor %}
+    </ul>
+    <form class="admin-filters" method="get" action="{{ url_for('admin.products') }}" role="search">
+      {% if filters.status != 'todos' %}<input type="hidden" name="status" value="{{ filters.status }}">{% endif %}
+      <div class="admin-filters__q">
+        <label class="sr-only" for="f-q">Buscar produtos por nome</label>
+        {{ icon('search') }}<input id="f-q" class="input" type="search" name="q" value="{{ filters.q }}" placeholder="Buscar produtos..." maxlength="80" autocomplete="off">
+      </div>
+      <div>
+        <label class="sr-only" for="f-cat">Categoria</label>
+        <select id="f-cat" class="input" name="categoria">
+          <option value="">Todas as categorias</option>
+          {% for c in categories %}<option value="{{ c.id }}" {% if filters.category == c.id %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+        </select>
+      </div>
+      <button class="btn btn--ghost btn--sm" type="submit">{{ icon('filter') }}<span>Filtrar</span></button>
+      {% if filters.active %}<a class="btn-link" href="{{ url_for('admin.products') }}">Limpar filtros</a>{% endif %}
+    </form>
+  </div>
+
+  {% if page.items %}
+  <div class="admin-table-wrap">
+    <table class="admin-table">
+      <thead><tr><th scope="col">Foto</th><th scope="col">Produto</th><th scope="col">Categoria</th><th scope="col">Preço</th><th scope="col">Status</th><th scope="col">Ações</th></tr></thead>
+      <tbody>
+      {% for p in page.items %}
+        <tr>
+          <td data-label="Foto"><img class="admin-thumb" src="{{ url_for('static', filename=p.image) }}" alt="{{ p.image_alt or p.name }}" width="96" height="72" loading="lazy" decoding="async"></td>
+          <td data-label="Produto" class="admin-table__name"><strong>{{ p.name }}</strong><span class="muted">{{ p.description }}</span></td>
+          <td data-label="Categoria"><span class="admin-pill">{{ p.category.name }}</span></td>
+          <td data-label="Preço" class="admin-table__price">{{ p.price_cents|brl }}</td>
+          <td data-label="Status">
+            <form method="post" action="{{ url_for('admin.product_toggle', product_id=p.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+              <button class="admin-status {{ 'is-on' if p.is_available else 'is-off' }}" type="submit">
+                <span>{{ 'Disponível' if p.is_available else 'Indisponível' }}</span>
+                <span class="sr-only"> — alterar “{{ p.name }}” para {{ 'indisponível' if p.is_available else 'disponível' }}</span>
+              </button>
+            </form>
+          </td>
+          <td data-label="Ações">
+            <div class="admin-actions">
+              <a class="admin-icon-btn" href="{{ url_for('catalog.product', slug=p.slug) }}" target="_blank" rel="noopener noreferrer" aria-label="Ver {{ p.name }} na loja (abre em nova aba)" title="Ver na loja">{{ icon('eye') }}</a>
+              <a class="admin-icon-btn" href="{{ url_for('admin.product_edit', product_id=p.id) }}" aria-label="Editar {{ p.name }}" title="Editar">{{ icon('pencil') }}</a>
+              <a class="admin-icon-btn admin-icon-btn--danger" href="{{ url_for('admin.product_delete_confirm', product_id=p.id) }}" data-delete data-product-name="{{ p.name }}" aria-label="Excluir {{ p.name }}" title="Excluir">{{ icon('trash') }}</a>
+            </div>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="admin-pager">
+    <p class="muted">Mostrando {{ page.first }}–{{ page.last }} de {{ page.total }} {{ 'produto' if page.total == 1 else 'produtos' }}</p>
+    {% if page.pages > 1 %}
+    <nav class="admin-pager__nav" aria-label="Paginação dos produtos">
+      {% if page.has_prev %}<a class="btn btn--ghost btn--sm" rel="prev" href="{{ url_for('admin.products', **filters.as_params(pagina=page.prev_num)) }}">{{ icon('arrow-left') }}<span>Anterior</span></a>{% endif %}
+      <span class="admin-pager__info">Página {{ page.page }} de {{ page.pages }}</span>
+      {% if page.has_next %}<a class="btn btn--ghost btn--sm" rel="next" href="{{ url_for('admin.products', **filters.as_params(pagina=page.next_num)) }}"><span>Próxima</span>{{ icon('arrow-right') }}</a>{% endif %}
+    </nav>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="admin-empty">
+    <img src="{{ url_for('static', filename='img/mascote/mascote-feliz.png') }}" alt="" width="800" height="860" loading="lazy">
+    {% if filters.active %}
+    <h3>Nenhum produto encontrado</h3>
+    <p class="muted">Tente outro nome ou limpe os filtros para ver todos os produtos.</p>
+    <a class="btn btn--ghost" href="{{ url_for('admin.products') }}">Limpar filtros</a>
+    {% else %}
+    <h3>Seu catálogo ainda está vazio</h3>
+    <p class="muted">Cadastre o primeiro produto para ele aparecer no cardápio da loja.</p>
+    <a class="btn btn--primary" href="{{ url_for('admin.product_new') }}">{{ icon('plus') }}<span>Novo produto</span></a>
+    {% endif %}
+  </div>
+  {% endif %}
+</section>
+
+<dialog class="admin-dialog" data-delete-dialog aria-labelledby="del-title" aria-describedby="del-text">
+  <form method="post" action="{{ url_for('admin.products') }}" data-delete-form>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+    <img class="admin-dialog__mascot" src="{{ url_for('static', filename='img/mascote/mascote-feliz.png') }}" alt="" width="800" height="860" loading="lazy">
+    <h2 id="del-title">Excluir produto?</h2>
+    <p id="del-text">Tem certeza de que deseja excluir “<strong data-delete-name></strong>”? Esta ação é irreversível e o produto sairá da loja. Os pedidos já feitos continuam guardados com o nome e o preço da época.</p>
+    <div class="admin-dialog__actions">
+      <button class="btn btn--ghost" type="button" data-dialog-cancel>Cancelar</button>
+      <button class="btn btn--danger" type="submit">{{ icon('trash') }}<span>Excluir produto</span></button>
+    </div>
+  </form>
+</dialog>
+{% endblock %}

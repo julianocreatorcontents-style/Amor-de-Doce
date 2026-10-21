@@ -1,0 +1,8 @@
+{% extends "account/_layout.html" %}
+{% from "components/macros.html" import product_card %}
+{% block title %}Favoritos — KNAZH{% endblock %}
+{% block account_content %}
+<section class="card"><h2>Favoritos</h2>
+{% if products %}<div class="grid grid--3">{% for p in products %}{{ product_card(p, favorite_ids) }}{% endfor %}</div>
+{% else %}<div class="inline-state inline-state--sm"><div><h3>Nenhum favorito ainda.</h3><p>Toque no coração dos produtos para salvá-los aqui.</p><a class="btn btn--primary" href="{{ url_for('catalog.catalog') }}">Ver cardápio</a></div></div>{% endif %}
+</section>{% endblock %}

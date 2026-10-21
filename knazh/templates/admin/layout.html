@@ -1,0 +1,62 @@
+{% from "components/macros.html" import icon %}
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Painel administrativo{% endblock %} — KNAZH</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#FFB323">
+  <link rel="icon" href="{{ url_for('static', filename='img/brand/favicon.ico') }}" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/brand/favicon-32x32.png') }}">
+  <link rel="preload" href="{{ url_for('static', filename='fonts/fredoka-latin-700-normal.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{{ url_for('static', filename='fonts/dm-sans-latin-400-normal.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <script src="{{ url_for('static', filename='js/boot.js') }}"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+</head>
+<body class="admin-body">
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+  {% include "components/icons.html" %}
+  <div class="admin-shell">
+    <aside class="admin-side" aria-label="Navegação do painel">
+      <a class="admin-side__brand" href="{{ url_for('admin.products') }}" aria-label="KNAZH — painel administrativo">
+        <img src="{{ url_for('static', filename='img/brand/logo-assinatura-creme.png') }}" alt="KNAZH" width="360" height="237">
+      </a>
+      <nav class="admin-nav">
+        <ul>
+          <li><a href="{{ url_for('admin.products') }}" {% if section == 'produtos' %}aria-current="page"{% endif %}>{{ icon('package') }}<span>Produtos</span></a></li>
+          {% if customer.can_manage_admins %}<li><a href="{{ url_for('admin.users') }}" {% if section == 'administradores' %}aria-current="page"{% endif %}>{{ icon('shield') }}<span>Administradores</span></a></li>{% endif %}
+          <li><a href="{{ url_for('main.home') }}">{{ icon('store') }}<span>Ver a loja</span></a></li>
+        </ul>
+      </nav>
+      <div class="admin-side__user">
+        <p class="admin-side__who"><span class="admin-side__name">{{ customer.name }}</span><span class="admin-side__role">{{ 'Gerencia administradores' if customer.can_manage_admins else 'Administrador' }}</span></p>
+        <form method="post" action="{{ url_for('account.logout') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="admin-logout" type="submit">{{ icon('logout') }}<span>Sair</span></button>
+        </form>
+      </div>
+    </aside>
+
+    <div class="admin-main">
+      <header class="admin-top">
+        <p class="admin-crumbs">Painel administrativo<span aria-hidden="true"> / </span>{% block crumb %}{{ 'Administradores' if section == 'administradores' else 'Produtos' }}{% endblock %}</p>
+        <p class="admin-badge">{{ icon('lock') }}<span>Acesso restrito • Administrador</span></p>
+      </header>
+
+      <div class="toasts admin-toasts" aria-live="polite" aria-atomic="false" data-toasts>
+        {% with messages = get_flashed_messages(with_categories=true) %}{% for cat, msg in messages %}
+        <p class="toast toast--{{ cat }}" role="{{ 'alert' if cat == 'error' else 'status' }}">{{ icon('check' if cat == 'success' else 'alert') }}<span>{{ msg }}</span></p>
+        {% endfor %}{% endwith %}
+      </div>
+
+      <main id="conteudo" tabindex="-1" class="admin-content">{% block content %}{% endblock %}</main>
+    </div>
+  </div>
+  <script src="{{ url_for('static', filename='js/admin.js') }}" defer></script>
+</body>
+</html>

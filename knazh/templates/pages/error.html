@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% from "components/macros.html" import empty_state %}
+{% block title %}{{ title }} — KNAZH{% endblock %}
+{% block robots %}<meta name="robots" content="noindex">{% endblock %}
+{% block content %}
+{{ empty_state(mascot, title, text, ('Tentar novamente' if status >= 500 else 'Voltar ao início', request.path if status >= 500 else url_for('main.home')), ('Voltar ao início', url_for('main.home')) if status >= 500 else None, icon_name='alert', tag='Calma! Já volta.' if status >= 500 else None) }}
+{% endblock %}

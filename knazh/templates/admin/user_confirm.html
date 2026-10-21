@@ -1,0 +1,26 @@
+{% extends "admin/layout.html" %}
+{% from "components/macros.html" import icon %}
+{% set granting = action == 'grant' %}
+{% block title %}{{ 'Conceder acesso' if granting else 'Remover acesso' }} — Painel administrativo{% endblock %}
+{% block crumb %}<a href="{{ url_for('admin.users') }}">Administradores</a><span aria-hidden="true"> / </span>{{ 'Conceder acesso' if granting else 'Remover acesso' }}{% endblock %}
+{% block content %}
+<section class="admin-card admin-confirm" aria-labelledby="adm-title">
+  <img class="admin-dialog__mascot" src="{{ url_for('static', filename='img/mascote/mascote-feliz.png') }}" alt="" width="800" height="860">
+  {% if granting %}
+  <h1 id="adm-title">Tornar administrador(a)?</h1>
+  <p>“<strong>{{ target.name }}</strong>” ({{ target.email }}) passará a acessar o painel e poderá cadastrar, editar e excluir produtos da loja.</p>
+  {% else %}
+  <h1 id="adm-title">Remover acesso administrativo?</h1>
+  <p>“<strong>{{ target.name }}</strong>” ({{ target.email }}) perderá o acesso ao painel. A conta continua existindo como cliente comum, com pedidos e favoritos intactos.</p>
+  {% endif %}
+  <form method="post" action="{{ url_for('admin.user_grant' if granting else 'admin.user_revoke', user_id=target.id) }}" data-once>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% if granting %}<label class="admin-check admin-check--dialog"><input class="admin-check__input" type="checkbox" name="can_manage" value="y"><span>Também pode gerenciar administradores</span></label>{% endif %}
+    <div class="admin-dialog__actions">
+      <a class="btn btn--ghost" href="{{ url_for('admin.users') }}">Cancelar</a>
+      {% if granting %}<button class="btn btn--primary" type="submit">{{ icon('shield') }}<span>Conceder acesso</span></button>
+      {% else %}<button class="btn btn--danger" type="submit">{{ icon('close') }}<span>Remover acesso</span></button>{% endif %}
+    </div>
+  </form>
+</section>
+{% endblock %}

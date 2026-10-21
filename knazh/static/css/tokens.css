@@ -1,0 +1,51 @@
+/* KNAZH — design tokens. Cores da paleta oficial dos assets: #FF6B1A, #FFB323, #171717, #FFF5E8. */
+@font-face { font-family: "Fredoka"; font-weight: 600; font-style: normal; font-display: swap; src: url("../fonts/fredoka-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Fredoka"; font-weight: 700; font-style: normal; font-display: swap; src: url("../fonts/fredoka-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "DM Sans"; font-weight: 400; font-style: normal; font-display: swap; src: url("../fonts/dm-sans-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "DM Sans"; font-weight: 500; font-style: normal; font-display: swap; src: url("../fonts/dm-sans-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "DM Sans"; font-weight: 700; font-style: normal; font-display: swap; src: url("../fonts/dm-sans-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "Caveat"; font-weight: 600; font-style: normal; font-display: swap; src: url("../fonts/caveat-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Caveat"; font-weight: 700; font-style: normal; font-display: swap; src: url("../fonts/caveat-latin-700-normal.woff2") format("woff2"); }
+
+:root {
+  /* Marca */
+  --orange: #FF6B1A;          /* decorativo e destaques grandes */
+  --orange-action: #C84A08;   /* fundo de botões/links com texto branco (contraste AA 4.7:1) */
+  --orange-action-hover: #A93D05;
+  --yellow: #FFB323;
+  --charcoal: #171717;
+  --cream: #FFF5E8;
+  --cream-2: #FCEBD3;
+  --surface: #FFFFFF;
+  --brown: #3A1608;           /* títulos */
+  --text: #43302A;
+  --muted: #6E5A50;
+  --line: #EBD9C3;
+  /* Canais */
+  --ifood: #D4172A;
+  --ifood-hover: #B01222;
+  --whatsapp: #0B7A3E;
+  --whatsapp-bg: #E6F5EC;
+  /* Estados */
+  --ok: #1B6B3A; --ok-bg: #E3F4E9;
+  --warn: #8A4B00; --warn-bg: #FFF0CF;
+  --err: #B3261E; --err-bg: #FDE7E5;
+  --info-bg: #FFF0DD;
+
+  /* Tipografia */
+  --font-display: "Fredoka", "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif;
+  --font-body: "DM Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-script: "Caveat", "Segoe Print", "Bradley Hand", cursive;
+
+  /* Forma e espaço */
+  --radius-sm: 10px; --radius: 16px; --radius-lg: 24px; --radius-pill: 999px;
+  --shadow-sm: 0 1px 2px rgba(58,22,8,.08);
+  --shadow: 0 4px 14px rgba(58,22,8,.10);
+  --space-1: .25rem; --space-2: .5rem; --space-3: .75rem; --space-4: 1rem; --space-5: 1.5rem; --space-6: 2rem; --space-7: 3rem; --space-8: 4rem;
+  --container: 1200px;
+  --gutter: 1rem;
+  --header-h: 64px;
+  --tabbar-h: 62px;
+  --focus: 0 0 0 3px #fff, 0 0 0 6px var(--charcoal);
+}
+@media (min-width: 768px) { :root { --gutter: 1.5rem; --header-h: 76px; } }

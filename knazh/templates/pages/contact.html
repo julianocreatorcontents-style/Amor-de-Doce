@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% from "components/macros.html" import icon, field, ifood_button, whatsapp_button, page_hero %}
+{% block title %}Contato — KNAZH{% endblock %}
+{% block description %}Fale com a KNAZH: envie uma mensagem ou use os canais de pedido.{% endblock %}
+{% block content %}
+{% call page_hero('Contato', 'Tem alguma dúvida, sugestão ou quer saber mais sobre a KNAZH? Estamos aqui para te atender!', kicker='Fale com a gente!', art='img/mascote/mascote-feliz.png') %}{% endcall %}
+<div class="container contact">
+  <section class="card" aria-labelledby="canais-title"><h2 id="canais-title">Nossos canais</h2><p class="muted">Escolha o canal que for mais prático para você!</p>
+    <ul class="channel-list">
+      <li class="channel"><span class="channel__icon channel__icon--wa">{{ icon('whatsapp') }}</span><div><h3>WhatsApp</h3>
+        {% if channels.whatsapp_configured %}<p class="channel__num">{{ channels.whatsapp_display }}</p>{{ whatsapp_button(channels, cls='btn btn--whatsapp btn--sm', label='Chamar no WhatsApp') }}
+        {% else %}<p class="muted">Canal ainda não disponível.</p>{% endif %}</div></li>
+      <li class="channel"><span class="channel__icon channel__icon--if">{{ icon('bag') }}</span><div><h3>iFood</h3>
+        {% if channels.ifood_configured %}<p class="muted">Canal principal para pedidos</p>{{ ifood_button(channels, 'btn btn--ifood btn--sm', 'Pedir pelo iFood') }}
+        {% else %}<p class="muted">Canal ainda não disponível.</p>{% endif %}</div></li>
+      {% if channels.email %}<li class="channel"><span class="channel__icon">{{ icon('mail') }}</span><div><h3>E-mail</h3><p><a href="mailto:{{ channels.email }}">{{ channels.email }}</a></p></div></li>{% endif %}
+      <li class="channel"><span class="channel__icon channel__icon--form">{{ icon('send') }}</span><div><h3>Dúvidas e sugestões</h3><p class="muted">Fale com a gente pelo formulário.</p><a class="btn btn--primary btn--sm" href="#formulario">Enviar mensagem</a></div></li>
+    </ul>
+  </section>
+
+  <section class="card" id="formulario" aria-labelledby="form-title"><h2 id="form-title">Envie uma mensagem</h2>
+    {% if sent %}
+    <div class="notice notice--success" role="status">{{ icon('check') }}<div><strong>Mensagem registrada!</strong><p>Recebemos o seu contato. Para algo urgente, use os canais de pedido ao lado.</p></div></div>
+    {% endif %}
+    <p class="muted">Preencha o formulário. Campos com <span class="req">*</span> são obrigatórios.</p>
+    <form method="post" action="{{ url_for('main.contact') }}#formulario" novalidate data-once>
+      {{ form.csrf_token }}
+      {{ field(form.name, autocomplete='name') }}
+      {{ field(form.email, autocomplete='email') }}
+      {{ field(form.subject) }}
+      {{ field(form.message, rows=5) }}
+      <div class="hp" aria-hidden="true"><label for="website">Não preencha este campo</label>{{ form.website(tabindex=-1, autocomplete='off') }}</div>
+      <button class="btn btn--primary btn--lg btn--block" type="submit">{{ icon('send') }}<span>Enviar mensagem</span></button>
+      <p class="summary__note">{{ icon('lock') }} Usamos seus dados apenas para responder ao contato. Veja a <a href="{{ url_for('main.privacy') }}">Política de Privacidade</a>.</p>
+    </form>
+  </section>
+
+  <section class="card" aria-labelledby="pedir-title"><h2 id="pedir-title">Como fazer seu pedido?</h2><p class="muted">É muito simples! Escolha o canal que preferir:</p>
+    <div class="stack">
+      <a class="btn btn--primary btn--block" href="{{ url_for('catalog.catalog') }}">Montar pedido pelo site</a>
+      {{ ifood_button(channels, 'btn btn--ifood btn--block', 'Acessar loja no iFood') }}
+      {{ whatsapp_button(channels, cls='btn btn--whatsapp btn--block', label='Chamar no WhatsApp') }}
+    </div>
+  </section>
+</div>
+{% endblock %}

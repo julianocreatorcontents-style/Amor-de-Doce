@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% from "components/macros.html" import icon, product_card, empty_state, pagination, cta_band %}
+{% if mode == 'search' %}{% set heading = 'Resultados da sua busca' %}{% set page_title = 'Busca por “' ~ filters.q ~ '”' %}
+{% elif mode == 'category' %}{% set heading = category.name %}{% set page_title = category.name %}
+{% else %}{% set heading = 'Nosso cardápio' %}{% set page_title = 'Cardápio' %}{% endif %}
+{% block title %}{{ page_title }} — KNAZH{% endblock %}
+{% block description %}{% if mode == 'category' %}{{ category.description }}{% else %}Explore o cardápio da KNAZH: brownies, brigadeiros, bolos, sobremesas e mais.{% endif %}{% endblock %}
+{% block robots %}{% if mode == 'search' or filters.has_filters or filters.page > 1 %}<meta name="robots" content="noindex,follow">{% endif %}{% endblock %}
+{% set form_action = url_for('catalog.category', slug=category.slug) if mode == 'category' else (url_for('catalog.search') if mode == 'search' else url_for('catalog.catalog')) %}
+
+{% block content %}
+<section class="hero-band hero-band--compact">
+  <div class="container hero-band__inner">
+    <div class="hero-band__text">
+      <p class="script hero-band__kicker">{{ 'O que você está procurando?' if mode == 'search' else 'Aqui tem todo o sabor que você ama!' }}</p>
+      <h1>{{ heading }}</h1>
+      <p class="hero-band__lead">
+        {% if mode == 'search' %}Encontramos {{ page.total }} {{ 'produto' if page.total == 1 else 'produtos' }} para “{{ filters.q }}”.
+        {% elif mode == 'category' %}{{ category.description }}
+        {% else %}Doce é sempre uma boa ideia! Explore nossas categorias e encontre o seu favorito.{% endif %}
+      </p>
+    </div>
+    <img class="hero-band__art" src="{{ url_for('static', filename='img/mascote/' ~ ('mascote-busca.png' if mode == 'search' else 'mascote-feliz-brownie.png')) }}" alt="" width="400" height="430">
+  </div>
+</section>
+
+<nav class="container category-tiles-wrap" aria-label="Categorias">
+  <ul class="category-tiles category-tiles--row">
+    <li><a class="category-tile{% if mode == 'catalog' and not filters.categories %} is-active{% endif %}" href="{{ url_for('catalog.catalog') }}" {% if mode == 'catalog' and not filters.categories %}aria-current="page"{% endif %}>{{ icon('package') }}<span>Todos</span></a></li>
+    {% for c in categories %}
+    <li><a class="category-tile{% if mode == 'category' and category.id == c.id %} is-active{% endif %}" href="{{ url_for('catalog.category', slug=c.slug) }}" {% if mode == 'category' and category.id == c.id %}aria-current="page"{% endif %}>{{ icon(c.icon) }}<span>{{ c.name }}</span></a></li>
+    {% endfor %}
+  </ul>
+</nav>
+
+<div class="container catalog">
+  <aside class="filters" aria-label="Filtros">
+    <details class="filters__panel" data-filters open>
+      <summary class="filters__summary">{{ icon('filter') }}<span>Filtrar e ordenar</span>{% if filters.has_filters %}<b class="filters__count">{{ filters.user_categories|length + (1 if filters.price else 0) }}</b>{% endif %}</summary>
+      <form class="filters__form" method="get" action="{{ form_action }}" data-autosubmit>
+        {% if mode == 'search' %}<input type="hidden" name="q" value="{{ filters.q }}">{% endif %}
+        {% if mode != 'category' %}
+        <fieldset><legend>Categoria</legend>
+          {% for c in categories %}
+          <label class="check"><input type="checkbox" name="categoria" value="{{ c.slug }}" {% if c.slug in filters.categories %}checked{% endif %}><span>{{ c.name }} <small>({{ counts.get(c.slug, 0) }})</small></span></label>
+          {% endfor %}
+        </fieldset>
+        {% endif %}
+        <fieldset><legend>Faixa de preço</legend>
+          <label class="check check--radio"><input type="radio" name="preco" value="" {% if not filters.price %}checked{% endif %}><span>Todos</span></label>
+          {% for key, label, lo, hi in price_ranges %}
+          <label class="check check--radio"><input type="radio" name="preco" value="{{ key }}" {% if filters.price == key %}checked{% endif %}><span>{{ label }}</span></label>
+          {% endfor %}
+        </fieldset>
+        <div class="field"><label for="ordem">Ordenar por</label>
+          <select id="ordem" name="ordem" class="input">{% for key, label in sorts %}<option value="{{ key }}" {% if filters.sort == key %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+        <div class="filters__buttons">
+          <button class="btn btn--primary btn--block" type="submit">Aplicar</button>
+          {% if filters.has_filters or filters.sort != 'populares' %}<a class="btn btn--ghost btn--block" href="{{ form_action }}{% if mode == 'search' %}?q={{ filters.q|urlencode }}{% endif %}">Limpar filtros</a>{% endif %}
+        </div>
+      </form>
+    </details>
+  </aside>
+
+  <section class="results" aria-labelledby="results-title">
+    <div class="results__head">
+      <div>
+        <h2 id="results-title">{{ category.name if mode == 'category' else ('Produtos encontrados' if mode == 'search' else 'Todos os produtos') }}</h2>
+        {% if mode == 'search' %}<p><a class="link-arrow link-arrow--sm" href="{{ url_for('catalog.catalog') }}">{{ icon('close') }}Limpar busca</a></p>{% endif %}
+      </div>
+      <p class="results__count" role="status">{{ page.total }} {{ 'produto encontrado' if page.total == 1 else 'produtos encontrados' }}</p>
+    </div>
+    {% if page.items %}
+    <div class="grid grid--4">{% for p in page.items %}{{ product_card(p, favorite_ids, lazy=loop.index > 4) }}{% endfor %}</div>
+    {{ pagination(page, filters, request.endpoint, {'slug': category.slug} if mode == 'category' else {}) }}
+    {% else %}
+    <div class="inline-state">
+      <img src="{{ url_for('static', filename='img/mascote/mascote-busca.png') }}" alt="" width="400" height="430" loading="lazy">
+      <div>
+        {% if mode == 'search' %}<h3>Nenhum resultado encontrado</h3><p>Não encontramos produtos para a busca “{{ filters.q }}”{% if filters.has_filters %} com os filtros escolhidos{% endif %}. Tente outros termos ou explore o cardápio completo.</p>
+        {% elif filters.has_filters %}<h3>Nenhum produto com esses filtros</h3><p>Ajuste ou limpe os filtros para ver mais opções.</p>
+        {% else %}<h3>Nenhum produto encontrado</h3><p>No momento não temos itens {{ 'nesta categoria' if mode == 'category' else 'no cardápio' }}. Volte mais tarde ou explore outras opções.</p>{% endif %}
+        <div class="state__actions">
+          <a class="btn btn--primary" href="{{ url_for('catalog.catalog') }}">{{ 'Ver cardápio completo' if mode == 'search' else 'Ver outras categorias' }}</a>
+          {% if filters.has_filters %}<a class="link-arrow link-arrow--back" href="{{ form_action }}{% if mode == 'search' %}?q={{ filters.q|urlencode }}{% endif %}">{{ icon('arrow-left') }}Limpar filtros</a>{% endif %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </section>
+</div>
+{{ cta_band(channels) }}
+{% endblock %}

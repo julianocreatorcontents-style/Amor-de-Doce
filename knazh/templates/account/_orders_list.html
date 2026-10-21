@@ -1,0 +1,6 @@
+{% if orders %}
+<ul class="order-list">{% for o in orders %}
+  <li><a href="{{ url_for('account.order_detail', public_id=o.public_id) }}"><strong>{{ o.number }}</strong><span class="muted">{{ o.created_at.strftime('%d/%m/%Y') }} · {{ o.item_count }} {{ 'item' if o.item_count == 1 else 'itens' }}</span><span class="badge badge--status">{{ o.status_label }}</span><b>{{ o.total_cents|brl }}</b></a></li>{% endfor %}</ul>
+{% else %}
+<div class="inline-state inline-state--sm"><div><h3>Você ainda não fez nenhum pedido.</h3><p>Explore nosso cardápio e escolha seus doces favoritos.</p><a class="btn btn--primary" href="{{ url_for('catalog.catalog') }}">Ver cardápio</a></div></div>
+{% endif %}
